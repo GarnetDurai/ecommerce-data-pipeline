@@ -4,7 +4,7 @@ A beginner-friendly, end-to-end Data Engineering project built for learning core
 
 ---
 
-## Architecture (Phase 1)
+## Architecture (Phase 3)
 
 ```text
 E-Commerce Event Generator
@@ -13,7 +13,14 @@ E-Commerce Event Generator
         ↓
   Kafka Topic (ecommerce-orders)
         ↓
-  Kafka Consumer (consumer.py)
+  PySpark Structured Streaming (spark/pipeline.py)
+        ↓
+  1. Cleaning: normalize order_status (trim, uppercase)
+  2. Validation: enforce contracts (split into valid & invalid quarantine)
+  3. Transformation: total_value = quantity * amount
+  4. Aggregation: group by customer_id (total_sales, order_count)
+        ↓
+  Real-Time Console Sink (Complete Mode for KPIs, Append Mode for Invalid)
 ```
 
 ---
@@ -27,13 +34,19 @@ ecommerce-data-pipeline/
 │   └── docker-compose.yml       # Starts Apache Kafka in KRaft mode (port 9092)
 │
 ├── config/
-│   └── config.py                # Broker URL and topic name constants
+│   └── config.py                # Broker URL, topic name, checkpoint path
 │
 ├── producer/
 │   └── producer.py              # Generates order events and publishes to Kafka
 │
 ├── consumer/
-│   └── consumer.py              # Reads and logs order events from Kafka (for testing)
+│   └── consumer.py              # Simple Kafka test consumer (Phase 1)
+│
+├── spark/
+│   └── pipeline.py              # PySpark Structured Streaming consumer (Phase 2)
+│
+├── data/
+│   └── checkpoints/             # Streaming state checkpoint directory
 │
 ├── requirements.txt             # Project dependencies
 └── README.md                    # Setup and guide

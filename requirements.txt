@@ -1,2 +1,2 @@
-# Kafka client library (kafka-python-ng is the updated, drop-in replacement compatible with modern Python 3.12+)
 kafka-python-ng>=2.2.0
+pyspark>=4.0.0

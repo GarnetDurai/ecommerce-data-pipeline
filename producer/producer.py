@@ -30,6 +30,11 @@ def create_order_event(order_id):
     order_status = random.choice(statuses)
     order_timestamp = datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
 
+    # Testing feature: Every 7th order is intentionally invalid to verify the validation and quarantine logic
+    if order_id % 7 == 0:
+        amount = -99.00
+        order_status = "INVALID_STATUS"
+
     order = {
         "order_id": order_id,
         "customer_id": customer_id,

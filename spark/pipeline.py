@@ -16,7 +16,7 @@ from config.config import (
     KAFKA_BOOTSTRAP_SERVERS,
     KAFKA_TOPIC,
     CHECKPOINT_DIR,
-    PROCESSED_DATA_PATH
+    S3_PROCESSED_DATA_PATH
 )
 
 from pyspark.sql import SparkSession
@@ -47,7 +47,15 @@ def create_spark_session():
     spark = SparkSession.builder \
         .appName("EcommerceStreamPipeline") \
         .master("local[*]") \
-        .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0") \
+        .config(
+        "spark.jars.packages",
+        "org.apache.spark:spark-sql-kafka-0-10_2.13:4.2.0,"
+        "org.apache.hadoop:hadoop-aws:3.5.0"
+    ) \
+        .config(
+        "spark.hadoop.fs.s3a.aws.credentials.provider",
+        "software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider"
+    ) \
         .getOrCreate()
 
     # Set log level to WARN to keep console output clean
@@ -193,7 +201,7 @@ def run_pipeline():
     aggregated_df = aggregate_orders(transformed_df)
 
     print("\nStarting Structured Streaming Queries...")
-    print(f"1. Parquet Sink: Writing valid processed orders to '{PROCESSED_DATA_PATH}'.")
+    print(f"1. Parquet Sink: Writing valid processed orders to '{S3_PROCESSED_DATA_PATH}'.")
     print("2. Table 'CustomerAggregations' displays real-time aggregated metrics.")
     print("3. Table 'InvalidOrders' displays any quarantined invalid records.")
     print("Press Ctrl+C to stop.\n")
@@ -203,7 +211,7 @@ def run_pipeline():
     parquet_query = transformed_df.writeStream \
         .format("parquet") \
         .outputMode("append") \
-        .option("path", PROCESSED_DATA_PATH) \
+        .option("path", S3_PROCESSED_DATA_PATH) \
         .option("checkpointLocation", f"{CHECKPOINT_DIR}/parquet") \
         .queryName("ParquetWriter") \
         .start()

@@ -12,7 +12,12 @@ if "JAVA_HOME" not in os.environ or "26" in os.environ.get("JAVA_HOME", ""):
 
 # Ensure the root directory is in the Python path to import config
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from config.config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC, CHECKPOINT_DIR
+from config.config import (
+    KAFKA_BOOTSTRAP_SERVERS,
+    KAFKA_TOPIC,
+    CHECKPOINT_DIR,
+    PROCESSED_DATA_PATH
+)
 
 from pyspark.sql import SparkSession
 from pyspark.sql.types import (
@@ -188,11 +193,22 @@ def run_pipeline():
     aggregated_df = aggregate_orders(transformed_df)
 
     print("\nStarting Structured Streaming Queries...")
-    print("1. Table 'CustomerAggregations' displays real-time aggregated metrics.")
-    print("2. Table 'InvalidOrders' displays any quarantined invalid records.")
+    print(f"1. Parquet Sink: Writing valid processed orders to '{PROCESSED_DATA_PATH}'.")
+    print("2. Table 'CustomerAggregations' displays real-time aggregated metrics.")
+    print("3. Table 'InvalidOrders' displays any quarantined invalid records.")
     print("Press Ctrl+C to stop.\n")
 
-    # 7A. Output aggregated KPI table to console
+    # 7A. Write valid processed orders to Parquet files
+    # Streaming file sinks require 'append' output mode
+    parquet_query = transformed_df.writeStream \
+        .format("parquet") \
+        .outputMode("append") \
+        .option("path", PROCESSED_DATA_PATH) \
+        .option("checkpointLocation", f"{CHECKPOINT_DIR}/parquet") \
+        .queryName("ParquetWriter") \
+        .start()
+
+    # 7B. Output aggregated KPI table to console
     # Mode 'complete' outputs the full updated state table on every micro-batch
     agg_query = aggregated_df.writeStream \
         .format("console") \
@@ -202,7 +218,7 @@ def run_pipeline():
         .queryName("CustomerAggregations") \
         .start()
 
-    # 7B. Output invalid quarantined records to console
+    # 7C. Output invalid quarantined records to console
     # Mode 'append' prints invalid records as they arrive
     invalid_query = invalid_df.writeStream \
         .format("console") \

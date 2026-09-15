@@ -4,7 +4,7 @@ A beginner-friendly, end-to-end Data Engineering project built for learning core
 
 ---
 
-## Architecture (Phase 3)
+## Architecture (Phase 4)
 
 ```text
 E-Commerce Event Generator
@@ -18,9 +18,8 @@ E-Commerce Event Generator
   1. Cleaning: normalize order_status (trim, uppercase)
   2. Validation: enforce contracts (split into valid & invalid quarantine)
   3. Transformation: total_value = quantity * amount
-  4. Aggregation: group by customer_id (total_sales, order_count)
-        ↓
-  Real-Time Console Sink (Complete Mode for KPIs, Append Mode for Invalid)
+  4. Storage Sink: Write valid processed orders to Parquet (data/processed/)
+  5. Aggregation & Console: Group by customer_id (total_sales, order_count)
 ```
 
 ---
@@ -34,7 +33,7 @@ ecommerce-data-pipeline/
 │   └── docker-compose.yml       # Starts Apache Kafka in KRaft mode (port 9092)
 │
 ├── config/
-│   └── config.py                # Broker URL, topic name, checkpoint path
+│   └── config.py                # Broker URL, topic name, checkpoint path, data path
 │
 ├── producer/
 │   └── producer.py              # Generates order events and publishes to Kafka
@@ -43,10 +42,11 @@ ecommerce-data-pipeline/
 │   └── consumer.py              # Simple Kafka test consumer (Phase 1)
 │
 ├── spark/
-│   └── pipeline.py              # PySpark Structured Streaming consumer (Phase 2)
+│   └── pipeline.py              # PySpark Structured Streaming pipeline (Phases 2 - 4)
 │
 ├── data/
-│   └── checkpoints/             # Streaming state checkpoint directory
+│   ├── checkpoints/             # Streaming state checkpoint directories
+│   └── processed/               # Snappy-compressed Parquet files (Phase 4)
 │
 ├── requirements.txt             # Project dependencies
 └── README.md                    # Setup and guide

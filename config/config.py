@@ -4,3 +4,4 @@
 KAFKA_BOOTSTRAP_SERVERS = "localhost:9092"
 KAFKA_TOPIC = "ecommerce-orders"
 CHECKPOINT_DIR = "data/checkpoints/orders"
+PROCESSED_DATA_PATH = "data/processed"

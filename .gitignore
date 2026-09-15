@@ -9,3 +9,9 @@ venv/
 .vscode/
 .idea/
 .DS_Store
+
+# Data pipeline outputs and streaming checkpoints
+data/checkpoints/
+data/processed/*.parquet
+data/processed/.*
+data/processed/_spark_metadata/

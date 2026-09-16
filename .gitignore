@@ -15,3 +15,8 @@ data/checkpoints/
 data/processed/*.parquet
 data/processed/.*
 data/processed/_spark_metadata/
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
